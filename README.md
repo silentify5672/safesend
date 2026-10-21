@@ -4,6 +4,12 @@
 
 Built for the PayPal AI Hackathon.
 
+### Try it live: https://safesend-2mxn.onrender.com
+
+Free hosting: the first visit after a quiet spell can take up to a minute to wake up.
+Uses PayPal **sandbox** (pretend money). To pay, log in to PayPal with a sandbox buyer account
+(test login details are in the Devpost submission).
+
 ## The problem
 
 Scammers target older people with fake police calls, "safe account" stories and
@@ -79,6 +85,8 @@ python app.py
 Open http://127.0.0.1:5000.
 
 ## Try the demo
+
+Use the live link above, or run it yourself.
 
 1. On the home page, click a **Demo** example such as **Scam: fake police**, then **Check this payment**.
 2. Tick "I still want to continue" and pay with your **sandbox Personal (buyer) account** in the PayPal pop-up.
