@@ -24,13 +24,49 @@ html { font-size: 20px; }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", "PingFang SC", "Microsoft YaHei", "Noto Sans SC",
+    "Nirmala UI", "Latha", "Noto Sans Tamil", sans-serif;
   color: var(--ink);
   background: var(--paper);
   line-height: 1.5;
 }
 
 a { color: var(--brand); }
+
+/* Language bar: always at the very top, big enough to tap */
+.langbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: #0b4a44;
+  color: #fff;
+}
+.langbar-icon { opacity: 0.85; flex: none; }
+.lang-btn {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  min-height: 44px;
+  min-width: 88px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.lang-btn:hover { border-color: #fff; }
+.lang-btn.active { background: #fff; color: var(--brand); border-color: #fff; }
+
+/* Tamil and Chinese text need a little more line spacing */
+.lang-ta, .lang-zh { line-height: 1.65; }
+html:lang(ta) { font-size: 21px; }
+.lang-ta .lead, .lang-ta .btn { word-break: break-word; }
 
 /* Top bar */
 .topbar {
@@ -264,6 +300,9 @@ td.num { white-space: nowrap; font-weight: 700; }
 
 @media (max-width: 600px) {
   html { font-size: 18px; }
+  .langbar { gap: 6px; padding: 8px 10px; }
+  .langbar-icon { display: none; }
+  .lang-btn { min-width: 0; flex: 1 1 40%; }
   main { padding: 20px 14px 48px; }
   .card, .verdict { padding: 20px; }
   h1 { font-size: 1.6rem; }

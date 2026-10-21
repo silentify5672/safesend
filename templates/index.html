@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Send money · SafeSend{% endblock %}
+{% block title %}{{ t('nav_send') }}{% endblock %}
 {% block content %}
-<h1>Hello, {{ settings.elder_name }}</h1>
-<p class="lead">Tell us who you are paying. We'll check it is safe before any money leaves.</p>
+<h1>{{ t('hello', name=settings.elder_name) }}</h1>
+<p class="lead">{{ t('index_lead') }}</p>
 
 {% if not paypal_ready %}
-  <div class="flash">PayPal keys are missing. Add PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET to your .env file.</div>
+  <div class="flash">{{ t('paypal_keys_missing') }}</div>
 {% endif %}
 
 <div class="demo">
-  <p>Demo: try an example</p>
+  <p>{{ t('demo_title') }}</p>
   <div class="chips">
     {% for s in scenarios %}
       <button type="button" class="chip" data-scenario="{{ loop.index0 }}">{{ s.label }}</button>
@@ -19,30 +19,33 @@
 
 <form class="card" method="post" action="{{ url_for('check') }}">
   <div class="field">
-    <label for="recipient">Who are you paying?</label>
-    <input type="text" id="recipient" name="recipient" required maxlength="80" placeholder="For example: Uncle Tan Chicken Rice">
+    <label for="recipient">{{ t('f_recipient') }}</label>
+    <input type="text" id="recipient" name="recipient" required maxlength="80" placeholder="{{ t('ph_recipient') }}">
   </div>
 
   <div class="field">
-    <label for="amount">How much? <span class="hint">In {{ currency }} (sandbox test money)</span></label>
+    <label for="amount">{{ t('f_amount') }} <span class="hint">{{ t('f_amount_hint', currency=currency) }}</span></label>
     <div class="money"><span>$</span><input type="number" id="amount" name="amount" required min="1" max="10000" step="0.01" inputmode="decimal" placeholder="0.00"></div>
   </div>
 
   <div class="field">
-    <label for="reason">What is it for?</label>
-    <input type="text" id="reason" name="reason" maxlength="120" placeholder="For example: Food, Bills, Gift">
+    <label for="reason">{{ t('f_reason') }}</label>
+    <input type="text" id="reason" name="reason" maxlength="120" placeholder="{{ t('ph_reason') }}">
   </div>
 
   <div class="field">
-    <label for="message">Did someone send you a message asking for this money?
-      <span class="hint">If yes, paste it here. If not, leave it empty.</span></label>
-    <textarea id="message" name="message" maxlength="2000" placeholder="Paste the WhatsApp, SMS or email here"></textarea>
+    <label for="message">{{ t('f_message') }}
+      <span class="hint">{{ t('f_message_hint') }}</span></label>
+    <textarea id="message" name="message" maxlength="2000" placeholder="{{ t('ph_message') }}"></textarea>
   </div>
 
-  <button class="btn btn-primary btn-block" type="submit">Check this payment</button>
+  <button class="btn btn-primary btn-block" type="submit">{{ t('btn_check') }}</button>
 </form>
 
-<p class="muted small">SafeSend checks with {{ ai_name or "safety rules" }}{% if ai_name %} and safety rules{% endif %}. Anything unusual is held until {{ settings.contact_name }} looks at it.</p>
+<p class="muted small">
+  {% if ai_name %}{{ t('footer_ai', ai=ai_name, contact=settings.contact_name) }}
+  {% else %}{{ t('footer_rules', contact=settings.contact_name) }}{% endif %}
+</p>
 {% endblock %}
 
 {% block scripts %}

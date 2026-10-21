@@ -1,65 +1,64 @@
 {% extends "base.html" %}
-{% block title %}Payment status · SafeSend{% endblock %}
+{% block title %}{{ t('title_status') }}{% endblock %}
 {% block content %}
 {% set s = payment.status %}
+{% set amount = payment.amount | money %}
 <div class="card status-hero status-{{ s }}">
   <div class="status-icon" aria-hidden="true">
     {% if s == "sent" %}✓{% elif s in ("held", "processing", "checked") %}⏸{% else %}✕{% endif %}
   </div>
 
   {% if s == "sent" %}
-    <h1>Money sent</h1>
-    <p>{{ payment.amount | money }} was sent to <strong>{{ payment.recipient }}</strong>.</p>
-    {% if payment.decided_by %}<p class="muted small">Approved by {{ payment.decided_by }}.</p>{% endif %}
+    <h1>{{ t('st_sent_h') }}</h1>
+    <p>{{ t('st_sent_p', amount=amount, recipient=payment.recipient) }}</p>
+    {% if payment.decided_by %}<p class="muted small">{{ t('approved_by', who=who_text(payment.decided_by)) }}</p>{% endif %}
 
   {% elif s == "held" and wait_seconds == 0 %}
-    <h1>The waiting time is over</h1>
-    <p>Nobody has checked this yet. Do you <strong>still</strong> want to send
-       {{ payment.amount | money }} to {{ payment.recipient }}?</p>
+    <h1>{{ t('st_over_h') }}</h1>
+    <p>{{ t('st_over_p', amount=amount, recipient=payment.recipient) }}</p>
     <div class="btn-row">
       <form method="post" action="{{ url_for('confirm_after_cooling_off', payment_id=payment.id) }}">
-        <button class="btn btn-ghost" type="submit">Yes, send it now</button>
+        <button class="btn btn-ghost" type="submit">{{ t('btn_yes_send') }}</button>
       </form>
       <form method="post" action="{{ url_for('cancel', payment_id=payment.id) }}">
-        <button class="btn btn-safe" type="submit">No, cancel it</button>
+        <button class="btn btn-safe" type="submit">{{ t('btn_no_cancel') }}</button>
       </form>
     </div>
 
   {% elif s in ("held", "processing") %}
-    <h1>Your money is safe, on hold</h1>
-    <p>{{ payment.amount | money }} to {{ payment.recipient }} has <strong>not</strong> been sent.
-       We've asked <strong>{{ settings.contact_name }}</strong> to check it.</p>
+    <h1>{{ t('st_held_h') }}</h1>
+    <p>{{ t('st_held_p', amount=amount, recipient=payment.recipient, contact=settings.contact_name) }}</p>
     {% if wait_seconds %}
-      <p class="muted">If nobody checks it, you can decide again in <span id="wait">{{ nice_wait(wait_seconds) }}</span>.</p>
+      <p class="muted">{{ t('st_wait', wait=nice_wait(wait_seconds)) }}</p>
     {% endif %}
     <div class="btn-row">
       <form method="post" action="{{ url_for('cancel', payment_id=payment.id) }}">
-        <button class="btn btn-safe" type="submit">Cancel it, don't send</button>
+        <button class="btn btn-safe" type="submit">{{ t('btn_cancel_held') }}</button>
       </form>
     </div>
 
   {% elif s == "blocked" %}
-    <h1>Blocked. Your money is safe</h1>
-    <p><strong>{{ payment.decided_by }}</strong> stopped this payment. No money was sent to {{ payment.recipient }}.</p>
-    {% if payment.tip %}<p class="muted">{{ payment.tip }}</p>{% endif %}
+    <h1>{{ t('st_blocked_h') }}</h1>
+    <p>{{ t('st_blocked_p', who=who_text(payment.decided_by), recipient=payment.recipient) }}</p>
+    {% if pick(payment.tip) %}<p class="muted">{{ pick(payment.tip) }}</p>{% endif %}
 
   {% elif s == "cancelled" %}
-    <h1>Cancelled. No money sent</h1>
-    <p>Good choice to check. Nothing was sent to {{ payment.recipient }}.</p>
-    {% if payment.tip %}<p class="muted">{{ payment.tip }}</p>{% endif %}
+    <h1>{{ t('st_cancelled_h') }}</h1>
+    <p>{{ t('st_cancelled_p', recipient=payment.recipient) }}</p>
+    {% if pick(payment.tip) %}<p class="muted">{{ pick(payment.tip) }}</p>{% endif %}
 
   {% elif s == "checked" %}
-    <h1>Not sent yet</h1>
-    <p><a href="{{ url_for('pay', payment_id=payment.id) }}">Go back to finish or cancel this payment</a>.</p>
+    <h1>{{ t('st_checked_h') }}</h1>
+    <p><a href="{{ url_for('pay', payment_id=payment.id) }}">{{ t('st_checked_link') }}</a></p>
 
   {% else %}
-    <h1>Something went wrong</h1>
-    <p>No money was sent. Please try again.</p>
+    <h1>{{ t('st_failed_h') }}</h1>
+    <p>{{ t('st_failed_p') }}</p>
   {% endif %}
 
-  {% if payment.note %}<p class="error small">{{ payment.note }}</p>{% endif %}
+  {% if payment.note %}<p class="error small">{{ message_text(payment.note) }}</p>{% endif %}
 
-  <p style="margin-top: 26px"><a href="{{ url_for('home') }}">Make another payment</a></p>
+  <p style="margin-top: 26px"><a href="{{ url_for('home') }}">{{ t('another') }}</a></p>
 </div>
 {% endblock %}
 

@@ -31,6 +31,18 @@ SafeSend checks a payment **before** any money leaves, and holds anything risky.
 
 The trusted contact can be anyone the user chooses: family, a friend, a neighbour, a caregiver or a community volunteer.
 
+### Four languages, for Singapore
+
+Every page can be switched between **English, 中文, Bahasa Melayu and தமிழ்** from the bar at the top.
+Each person's choice is remembered in their own browser, so an elder can use Chinese while their
+trusted contact reads the same warning in English.
+
+- The AI writes every warning and tip in all four languages.
+- The safety rules recognise scam phrases in all four languages (for example 安全账户, *akaun selamat*, பாதுகாப்பான கணக்கு).
+- The demo examples come in each language, so you can watch SafeSend catch a scam written in Chinese, Malay or Tamil.
+
+All wording lives in `translations.py`, so a native speaker can improve it without touching the code.
+
 ## How PayPal is used
 
 SafeSend is built on PayPal's **authorize now, capture later** flow:
@@ -102,6 +114,7 @@ Tip: set **Settings → Cooling-off time** to 1 minute to demo the cooling-off p
 | `app.py` | Flask web app: pages and the payment flow |
 | `paypal_client.py` | All PayPal API calls (create, authorize, capture, void) |
 | `risk_check.py` | AI check + safety rules |
+| `translations.py` | All wording in English, Chinese, Malay and Tamil |
 | `db.py` | SQLite storage for payments and settings |
 | `templates/`, `static/` | Pages and styling, designed for older eyes |
 
@@ -120,7 +133,8 @@ trusted contact dashboard is open to anyone with the link. Next steps:
 
 - Logins for the elder and the trusted contact, and alerts by SMS, WhatsApp or Telegram
 - Several trusted contacts, with a "any one can approve" rule
-- Reading screenshots of scam messages, and explanations in Chinese, Malay and Tamil
+- Reading screenshots of scam messages
+- Translations reviewed by native Chinese, Malay and Tamil speakers
 - Voice input for users who find typing hard
 
 If you think you're being scammed in Singapore, call the **ScamShield Helpline at 1799**.

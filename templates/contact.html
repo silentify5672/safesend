@@ -1,64 +1,64 @@
 {% extends "base.html" %}
-{% block title %}Trusted contact · SafeSend{% endblock %}
+{% block title %}{{ t('nav_contact') }}{% endblock %}
 {% block main_class %}wide{% endblock %}
 {% block content %}
-<h1>Hi {{ settings.contact_name.split(' ')[0] }}</h1>
-<p class="lead">These are payments {{ settings.elder_name }} tried to make that need your check. The money is held, not sent, until you decide.</p>
+<h1>{{ t('hi', name=settings.contact_name.split(' ')[0]) }}</h1>
+<p class="lead">{{ t('contact_lead', elder=settings.elder_name) }}</p>
 
-<h2>Waiting for you ({{ held | length }})</h2>
+<h2>{{ t('waiting_for_you', n=held | length) }}</h2>
 {% for p in held %}
   <div class="card held-card v-{{ p.verdict }}">
     <div class="held-top">
       <div>
-        <span class="badge badge-{{ p.verdict }}">{% if p.verdict == "STOP" %}LIKELY SCAM{% else %}NEEDS A CHECK{% endif %}</span>
-        <h2 style="margin: 8px 0 2px">To {{ p.recipient }}</h2>
-        {% if p.reason %}<div class="muted small">They said it's for: {{ p.reason }}</div>{% endif %}
+        <span class="badge badge-{{ p.verdict }}">{% if p.verdict == "STOP" %}{{ t('badge_scam') }}{% else %}{{ t('badge_check') }}{% endif %}</span>
+        <h2 style="margin: 8px 0 2px">{{ t('to_recipient', recipient=p.recipient) }}</h2>
+        {% if p.reason %}<div class="muted small">{{ t('for_reason', reason=p.reason) }}</div>{% endif %}
       </div>
       <div class="amount">{{ p.amount | money }}</div>
     </div>
 
-    <ul>{% for r in p.reasons %}<li>{{ r }}</li>{% endfor %}</ul>
+    <ul>{% for r in p.reasons %}<li>{{ pick(r) }}</li>{% endfor %}</ul>
     {% if p.message %}<div class="quote">{{ p.message }}</div>{% endif %}
-    {% if p.tip %}<p class="small"><strong>Tip:</strong> {{ p.tip }}</p>{% endif %}
-    {% if p.note %}<p class="error small">{{ p.note }}</p>{% endif %}
+    {% if pick(p.tip) %}<p class="small"><strong>{{ t('good_to_know') }}</strong> {{ pick(p.tip) }}</p>{% endif %}
+    {% if p.note %}<p class="error small">{{ message_text(p.note) }}</p>{% endif %}
 
     {% if p.status == "held" %}
       <div class="btn-row">
         <form method="post" action="{{ url_for('contact_block', payment_id=p.id) }}">
-          <button class="btn btn-stop" type="submit">Block, don't send</button>
+          <button class="btn btn-stop" type="submit">{{ t('btn_block') }}</button>
         </form>
         <form method="post" action="{{ url_for('contact_approve', payment_id=p.id) }}">
-          <button class="btn btn-ghost" type="submit">It's fine, send it</button>
+          <button class="btn btn-ghost" type="submit">{{ t('btn_approve') }}</button>
         </form>
       </div>
-      {% if p.wait_seconds %}<p class="muted small" style="margin-top: 10px">If you don't decide, {{ settings.elder_name }} can choose again in {{ nice_wait(p.wait_seconds) }}.</p>{% endif %}
+      {% if p.wait_seconds %}<p class="muted small" style="margin-top: 10px">{{ t('contact_wait', elder=settings.elder_name, wait=nice_wait(p.wait_seconds)) }}</p>{% endif %}
     {% else %}
-      <p class="muted">Working on it…</p>
+      <p class="muted">{{ t('status_processing') }}</p>
     {% endif %}
   </div>
 {% else %}
-  <div class="card empty">Nothing needs your check right now. This page updates by itself.</div>
+  <div class="card empty">{{ t('nothing_waiting') }}</div>
 {% endfor %}
 
-<h2 style="margin-top: 36px">Recent activity</h2>
+<h2 style="margin-top: 36px">{{ t('recent') }}</h2>
 <div class="card">
   {% if history %}
   <table class="history-table">
-    <thead><tr><th>To</th><th>Amount</th><th>Check</th><th>Decided by</th><th>Result</th></tr></thead>
+    <thead><tr><th>{{ t('th_to') }}</th><th>{{ t('th_amount') }}</th><th>{{ t('th_check') }}</th><th>{{ t('th_decided') }}</th><th>{{ t('th_result') }}</th></tr></thead>
     <tbody>
       {% for p in history %}
       <tr>
         <td>{{ p.recipient }}</td>
         <td class="num">{{ p.amount | money }}</td>
-        <td><span class="badge badge-{{ p.verdict }}">{{ p.verdict }}</span></td>
-        <td>{{ p.decided_by or "" }}</td>
-        <td>{{ status_words.get(p.status, p.status) }}</td>
+        <td><span class="badge badge-{{ p.verdict }}">{{ t('vb_' ~ p.verdict) }}</span></td>
+        <td>{{ who_text(p.decided_by) }}</td>
+        <td>{{ t('status_' ~ p.status) }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
   {% else %}
-    <p class="muted" style="margin: 0">No payments yet.</p>
+    <p class="muted" style="margin: 0">{{ t('no_payments') }}</p>
   {% endif %}
 </div>
 {% endblock %}

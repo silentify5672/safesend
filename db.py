@@ -95,6 +95,12 @@ def _to_dict(row):
         return None
     data = dict(row)
     data["reasons"] = json.loads(data["reasons"] or "[]")
+    # Tips are saved as {"en": ..., "zh": ...}. Older payments saved plain text.
+    try:
+        tip = json.loads(data["tip"]) if data["tip"] else ""
+    except ValueError:
+        tip = data["tip"]
+    data["tip"] = tip if isinstance(tip, (dict, str)) else ""
     return data
 
 
@@ -111,8 +117,8 @@ def create_payment(recipient, amount, reason, message, check):
                 reason,
                 message,
                 check["verdict"],
-                json.dumps(check["reasons"]),
-                check.get("tip", ""),
+                json.dumps(check["reasons"], ensure_ascii=False),
+                json.dumps(check.get("tip") or {}, ensure_ascii=False),
                 check.get("source", ""),
             ),
         )

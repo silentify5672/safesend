@@ -1,36 +1,36 @@
 {% extends "base.html" %}
-{% block title %}Settings · SafeSend{% endblock %}
+{% block title %}{{ t('nav_settings') }}{% endblock %}
 {% block content %}
-<h1>Settings</h1>
-<p class="lead">Set this up together with the person you're protecting.</p>
+<h1>{{ t('nav_settings') }}</h1>
+<p class="lead">{{ t('settings_lead') }}</p>
 
 <form class="card" method="post">
   <div class="field">
-    <label for="elder_name">Name of the person being protected</label>
+    <label for="elder_name">{{ t('s_elder') }}</label>
     <input type="text" id="elder_name" name="elder_name" value="{{ settings.elder_name }}" maxlength="60">
   </div>
   <div class="field">
-    <label for="contact_name">Trusted contact
-      <span class="hint">A family member, friend, neighbour, caregiver or community volunteer.</span></label>
+    <label for="contact_name">{{ t('nav_contact') }}
+      <span class="hint">{{ t('s_contact_hint') }}</span></label>
     <input type="text" id="contact_name" name="contact_name" value="{{ settings.contact_name }}" maxlength="60">
   </div>
   <div class="field">
-    <label for="trusted_payees">Trusted payees
-      <span class="hint">People and shops they pay often, separated by commas. Small payments to these go straight through.</span></label>
+    <label for="trusted_payees">{{ t('s_payees') }}
+      <span class="hint">{{ t('s_payees_hint') }}</span></label>
     <textarea id="trusted_payees" name="trusted_payees" style="min-height: 90px">{{ settings.trusted_payees }}</textarea>
   </div>
   <div class="field">
-    <label for="safe_limit">Usual payment limit ($)
-      <span class="hint">Payments to new people above this amount are held for a check.</span></label>
+    <label for="safe_limit">{{ t('s_limit') }}
+      <span class="hint">{{ t('s_limit_hint') }}</span></label>
     <input type="number" id="safe_limit" name="safe_limit" min="0" step="1" value="{{ settings.safe_limit }}">
   </div>
   <div class="field">
-    <label for="cooling_minutes">Cooling-off time (minutes)
-      <span class="hint">If the trusted contact doesn't answer, how long a held payment waits before the person can choose again. 1440 = 24 hours. Use 1 for a quick demo.</span></label>
+    <label for="cooling_minutes">{{ t('s_cool') }}
+      <span class="hint">{{ t('s_cool_hint') }}</span></label>
     <input type="number" id="cooling_minutes" name="cooling_minutes" min="1" max="4320" step="1" value="{{ settings.cooling_minutes }}">
   </div>
-  <button class="btn btn-primary btn-block" type="submit">Save settings</button>
+  <button class="btn btn-primary btn-block" type="submit">{{ t('btn_save') }}</button>
 </form>
 
-<p class="muted small">AI check: {{ ai_name or "not set up, using safety rules only" }} · PayPal: {% if paypal_ready %}keys found{% else %}keys missing{% endif %} · <a href="{{ url_for('health') }}">Test connections</a></p>
+<p class="muted small">{{ t('s_ai_check') }}: {{ ai_name or t('s_ai_off') }} · PayPal: {% if paypal_ready %}{{ t('s_pp_ok') }}{% else %}{{ t('s_pp_missing') }}{% endif %} · <a href="{{ url_for('health') }}">{{ t('s_test') }}</a></p>
 {% endblock %}
