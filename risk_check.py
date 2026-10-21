@@ -220,21 +220,35 @@ def _parse_ai_json(text):
     return {"verdict": verdict, "reasons": reasons, "tip": str(data.get("tip") or "")[:240]}
 
 
+def _gemini_models():
+    """The model to try first, then backups if it is busy."""
+    first = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
+    backups = ["gemini-flash-latest", "gemini-flash-lite-latest"]
+    return [first] + [m for m in backups if m != first]
+
+
 def _ask_gemini(prompt, api_key):
-    model = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
-    response = requests.post(
-        f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-        headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
-        json={
-            "system_instruction": {"parts": [{"text": AI_INSTRUCTIONS}]},
-            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0, "responseMimeType": "application/json"},
-        },
-        timeout=25,
-    )
-    response.raise_for_status()
-    parts = response.json()["candidates"][0]["content"]["parts"]
-    return "".join(p.get("text", "") for p in parts)
+    last_error = None
+    for model in _gemini_models():
+        response = requests.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+            headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
+            json={
+                "system_instruction": {"parts": [{"text": AI_INSTRUCTIONS}]},
+                "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0, "responseMimeType": "application/json"},
+            },
+            timeout=15,
+        )
+        # Busy (503), rate-limited (429) or model not found (404): try the next model.
+        if response.status_code in (404, 429, 500, 503):
+            last_error = f"{model}: HTTP {response.status_code}"
+            print(f"[SafeSend] Gemini {last_error}, trying the next model")
+            continue
+        response.raise_for_status()
+        parts = response.json()["candidates"][0]["content"]["parts"]
+        return "".join(p.get("text", "") for p in parts)
+    raise RuntimeError(f"All Gemini models were unavailable ({last_error})")
 
 
 def _ask_claude(prompt, api_key):
@@ -289,6 +303,7 @@ def check_payment(recipient, amount, reason, message, settings):
         ai = _ai_check(recipient, amount, reason, message, settings)
     except Exception as error:  # AI is down or the key is wrong: rules still protect
         ai_error = str(error)[:200]
+        print(f"[SafeSend] AI check failed, using safety rules only: {ai_error}")
 
     if ai is None:
         result = dict(rules)
