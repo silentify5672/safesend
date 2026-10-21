@@ -21,7 +21,18 @@ import requests
 
 # Sandbox = pretend money. Change to https://api-m.paypal.com only for real money.
 PAYPAL_API = os.getenv("PAYPAL_API_BASE", "https://api-m.sandbox.paypal.com")
-CURRENCY = os.getenv("CURRENCY", "USD")  # sandbox test accounts are US accounts
+CURRENCY = os.getenv("CURRENCY", "SGD")  # Singapore dollars; set CURRENCY=USD in .env to switch back
+SYMBOLS = {"SGD": "S$", "USD": "US$"}
+
+
+def money(amount):
+    """Format an amount with its currency, e.g. S$1,250.00"""
+    return f"{SYMBOLS.get(CURRENCY, CURRENCY + ' ')}{amount:,.2f}"
+
+
+def money_short(amount):
+    """Format without cents, e.g. S$1,250"""
+    return f"{SYMBOLS.get(CURRENCY, CURRENCY + ' ')}{amount:,.0f}"
 
 _token_cache = {"token": None, "expires_at": 0}
 
@@ -138,6 +149,12 @@ def capture(authorization_id):
         {"final_capture": True},
         idempotency_key=f"capture-{authorization_id}",
     )
+    status = result.get("status", "")
+    if status != "COMPLETED":
+        # In the sandbox a payment in a currency the seller doesn't hold can be
+        # PENDING until the seller accepts it. The money has still left the buyer.
+        reason = (result.get("status_details") or {}).get("reason", "")
+        print(f"[SafeSend] Capture status is {status} {reason}".strip())
     return result.get("id", "")
 
 

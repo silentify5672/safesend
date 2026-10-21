@@ -41,10 +41,10 @@ STRINGS = {
 
     # ---- Flash messages ----
     "flash_invalid": T(
-        "Please enter who you are paying and an amount between $1 and ${max}.",
-        "请填写收款人，以及 $1 到 ${max} 之间的金额。",
-        "Sila masukkan penerima dan jumlah antara $1 dan ${max}.",
-        "யாருக்கு அனுப்புகிறீர்கள் என்பதையும், $1 முதல் ${max} வரையிலான தொகையையும் உள்ளிடவும்.",
+        "Please enter who you are paying and an amount between {min} and {max}.",
+        "请填写收款人，以及 {min} 到 {max} 之间的金额。",
+        "Sila masukkan penerima dan jumlah antara {min} dan {max}.",
+        "யாருக்கு அனுப்புகிறீர்கள் என்பதையும், {min} முதல் {max} வரையிலான தொகையையும் உள்ளிடவும்.",
     ),
     "flash_still_cooling": T(
         "This payment is still in its cooling-off time.",
@@ -136,6 +136,18 @@ STRINGS = {
         "WhatsApp, SMS அல்லது மின்னஞ்சலை இங்கே ஒட்டவும்",
     ),
     "btn_check": T("Check this payment", "检查这笔付款", "Periksa bayaran ini", "இந்தப் பணம் செலுத்துதலைச் சரிபார்க்கவும்"),
+    "checking": T(
+        "Checking… please wait",
+        "正在检查……请稍等",
+        "Sedang memeriksa… sila tunggu",
+        "சரிபார்க்கிறது… தயவுசெய்து காத்திருக்கவும்",
+    ),
+    "checking_hint": T(
+        "This can take up to 30 seconds. Please don't press again.",
+        "可能需要最多 30 秒。请不要再按一次。",
+        "Ini mungkin mengambil masa sehingga 30 saat. Jangan tekan lagi.",
+        "இதற்கு 30 வினாடிகள் வரை ஆகலாம். மீண்டும் அழுத்த வேண்டாம்.",
+    ),
     "footer_ai": T(
         "SafeSend checks every payment with {ai} AI and safety rules. Anything unusual is held until {contact} looks at it.",
         "SafeSend 会用 {ai} 人工智能和安全规则检查每一笔付款。任何不寻常的付款都会先暂停，直到 {contact} 查看。",
@@ -649,16 +661,16 @@ RULE_TEXT = {
 
 AMOUNT_TEXT = {
     "large_amount": T(
-        "${amount} is a large amount to a new person.",
-        "付 ${amount} 给新的收款人，金额很大。",
-        "${amount} ialah jumlah yang besar kepada orang baru.",
-        "புதிய நபருக்கு ${amount} என்பது பெரிய தொகை.",
+        "{amount} is a large amount to a new person.",
+        "付 {amount} 给新的收款人，金额很大。",
+        "{amount} ialah jumlah yang besar kepada orang baru.",
+        "புதிய நபருக்கு {amount} என்பது பெரிய தொகை.",
     ),
     "above_limit": T(
-        "This person is not on your trusted list and ${amount} is above your usual limit.",
-        "这个人不在您的信任名单上，而且 ${amount} 超过您平时的上限。",
-        "Orang ini tiada dalam senarai dipercayai anda dan ${amount} melebihi had biasa anda.",
-        "இந்த நபர் உங்கள் நம்பகமான பட்டியலில் இல்லை, மேலும் ${amount} உங்கள் வழக்கமான வரம்பை விட அதிகம்.",
+        "This person is not on your trusted list and {amount} is above your usual limit.",
+        "这个人不在您的信任名单上，而且 {amount} 超过您平时的上限。",
+        "Orang ini tiada dalam senarai dipercayai anda dan {amount} melebihi had biasa anda.",
+        "இந்த நபர் உங்கள் நம்பகமான பட்டியலில் இல்லை, மேலும் {amount} உங்கள் வழக்கமான வரம்பை விட அதிகம்.",
     ),
     "trusted": T(
         "{recipient} is on your trusted list.",

@@ -118,7 +118,7 @@ def source_text(value):
 def message_text(value):
     """Translate a flash message or note if it is a known key."""
     if value in STRINGS:
-        return t(value, max=f"{MAX_AMOUNT:,}")
+        return t(value, min=paypal_client.money_short(1), max=paypal_client.money_short(MAX_AMOUNT))
     return value or ""
 
 
@@ -131,7 +131,7 @@ def load_payment_or_404(payment_id):
 
 @app.template_filter("money")
 def money(amount):
-    return f"${amount:,.2f}"
+    return paypal_client.money(amount)
 
 
 @app.context_processor
@@ -153,6 +153,7 @@ def shared_template_values():
         "paypal_ready": paypal_client.is_configured(),
         "ai_name": ai_provider(),
         "currency": paypal_client.CURRENCY,
+        "currency_symbol": paypal_client.SYMBOLS.get(paypal_client.CURRENCY, "$"),
     }
 
 
@@ -172,7 +173,7 @@ def check():
     reason = request.form.get("reason", "").strip()[:120]
     message = request.form.get("message", "").strip()[:2000]
     try:
-        amount = round(float(request.form.get("amount", "").replace(",", "").replace("$", "")), 2)
+        amount = round(float(request.form.get("amount", "").replace(",", "").replace("S$", "").replace("$", "")), 2)
     except ValueError:
         amount = 0
 
@@ -180,7 +181,7 @@ def check():
         flash("flash_invalid")
         return redirect(url_for("home"))
 
-    result = check_payment(recipient, amount, reason, message, db.get_settings())
+    result = check_payment(recipient, amount, reason, message, db.get_settings(), current_lang())
     payment_id = db.create_payment(recipient, amount, reason, message, result)
     return redirect(url_for("pay", payment_id=payment_id))
 

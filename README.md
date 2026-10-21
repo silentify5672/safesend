@@ -7,7 +7,7 @@ Built for the PayPal AI Hackathon.
 ### Try it live: https://safesend-2mxn.onrender.com
 
 Free hosting: the first visit after a quiet spell can take up to a minute to wake up.
-Uses PayPal **sandbox** (pretend money). To pay, log in to PayPal with a sandbox buyer account
+Uses PayPal **sandbox** (pretend money), in Singapore dollars (SGD). To pay, log in to PayPal with a sandbox buyer account
 (test login details are in the Devpost submission).
 
 ## The problem
