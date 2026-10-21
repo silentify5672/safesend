@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Send money · SafeSend{% endblock %}
+{% block content %}
+<h1>Hello, {{ settings.elder_name }}</h1>
+<p class="lead">Tell us who you are paying. We'll check it is safe before any money leaves.</p>
+
+{% if not paypal_ready %}
+  <div class="flash">PayPal keys are missing. Add PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET to your .env file.</div>
+{% endif %}
+
+<div class="demo">
+  <p>Demo: try an example</p>
+  <div class="chips">
+    {% for s in scenarios %}
+      <button type="button" class="chip" data-scenario="{{ loop.index0 }}">{{ s.label }}</button>
+    {% endfor %}
+  </div>
+</div>
+
+<form class="card" method="post" action="{{ url_for('check') }}">
+  <div class="field">
+    <label for="recipient">Who are you paying?</label>
+    <input type="text" id="recipient" name="recipient" required maxlength="80" placeholder="For example: Uncle Tan Chicken Rice">
+  </div>
+
+  <div class="field">
+    <label for="amount">How much? <span class="hint">In {{ currency }} (sandbox test money)</span></label>
+    <div class="money"><span>$</span><input type="number" id="amount" name="amount" required min="1" max="10000" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+  </div>
+
+  <div class="field">
+    <label for="reason">What is it for?</label>
+    <input type="text" id="reason" name="reason" maxlength="120" placeholder="For example: Food, Bills, Gift">
+  </div>
+
+  <div class="field">
+    <label for="message">Did someone send you a message asking for this money?
+      <span class="hint">If yes, paste it here. If not, leave it empty.</span></label>
+    <textarea id="message" name="message" maxlength="2000" placeholder="Paste the WhatsApp, SMS or email here"></textarea>
+  </div>
+
+  <button class="btn btn-primary btn-block" type="submit">Check this payment</button>
+</form>
+
+<p class="muted small">SafeSend checks with {{ ai_name or "safety rules" }}{% if ai_name %} and safety rules{% endif %}. Anything unusual is held until {{ settings.contact_name }} looks at it.</p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const scenarios = {{ scenarios | tojson }};
+  document.querySelectorAll("[data-scenario]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const s = scenarios[Number(button.dataset.scenario)];
+      for (const key of ["recipient", "amount", "reason", "message"]) {
+        document.getElementById(key).value = s[key];
+      }
+      document.getElementById("recipient").scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Check result · SafeSend{% endblock %}
+{% block content %}
+{% set v = payment.verdict %}
+
+<div class="verdict verdict-{{ v }}">
+  <div class="verdict-head">
+    <div class="verdict-icon" aria-hidden="true">{% if v == "SAFE" %}✓{% elif v == "CHECK" %}?{% else %}!{% endif %}</div>
+    <h1>
+      {% if v == "SAFE" %}This looks safe
+      {% elif v == "CHECK" %}Let's check this first
+      {% else %}Stop. This looks like a scam
+      {% endif %}
+    </h1>
+  </div>
+  <ul>
+    {% for reason in payment.reasons %}<li>{{ reason }}</li>{% endfor %}
+  </ul>
+  {% if payment.tip %}<div class="tip"><strong>Good to know:</strong> {{ payment.tip }}</div>{% endif %}
+  <p class="source">Checked by {{ payment.source }}</p>
+</div>
+
+<div class="card">
+  <div class="summary">
+    <div>
+      <div class="muted small">Paying</div>
+      <div><strong>{{ payment.recipient }}</strong></div>
+      {% if payment.reason %}<div class="muted small">For: {{ payment.reason }}</div>{% endif %}
+    </div>
+    <div class="amount">{{ payment.amount | money }}</div>
+  </div>
+</div>
+
+<div class="card">
+  {% if v == "SAFE" %}
+    <h2>Ready to send</h2>
+    <p>When you approve in PayPal, the money is sent straight away.</p>
+  {% elif v == "CHECK" %}
+    <h2>We'll hold it, just in case</h2>
+    <p>If you continue, the money is <strong>held, not sent</strong>. {{ settings.contact_name }} will be asked to check it.
+       You can also cancel it any time while it is held.</p>
+  {% else %}
+    <h2>Our advice: don't send this</h2>
+    <p>Please talk to {{ settings.contact_name }} or call the ScamShield Helpline at <strong>1799</strong> first.</p>
+    <label class="confirm-box">
+      <input type="checkbox" id="stop-confirm">
+      <span>I still want to continue. Hold the money until {{ settings.contact_name }} checks it.</span>
+    </label>
+  {% endif %}
+
+  <div id="paypal-area" {% if v == "STOP" %}hidden{% endif %}>
+    {% if paypal_ready %}
+      <div id="paypal-buttons"></div>
+      <p id="paypal-error" class="error" role="alert"></p>
+    {% else %}
+      <p class="error">PayPal keys are missing, so the PayPal button can't load.</p>
+    {% endif %}
+  </div>
+
+  <form method="post" action="{{ url_for('cancel', payment_id=payment.id) }}" style="margin-top: 14px">
+    <button class="btn {% if v == 'STOP' %}btn-safe{% else %}btn-ghost{% endif %} btn-block" type="submit">
+      {% if v == "STOP" %}Don't send. Cancel this payment{% else %}Cancel, don't send{% endif %}
+    </button>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if paypal_ready %}
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&intent=authorize&currency={{ currency }}&components=buttons&disable-funding=card,credit,paylater,venmo"></script>
+<script>
+  const paymentId = {{ payment.id }};
+  const errorBox = document.getElementById("paypal-error");
+
+  const stopBox = document.getElementById("stop-confirm");
+  if (stopBox) {
+    stopBox.addEventListener("change", () => {
+      document.getElementById("paypal-area").hidden = !stopBox.checked;
+    });
+  }
+
+  async function postJson(url, body) {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body || {}),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Something went wrong");
+    return data;
+  }
+
+  if (window.paypal) {
+    paypal.Buttons({
+      style: { layout: "vertical", shape: "pill", height: 55, label: "pay" },
+
+      // 1. Our server creates the order (amount comes from our database)
+      createOrder: async () => {
+        errorBox.textContent = "";
+        const data = await postJson(`/api/payments/${paymentId}/order`);
+        return data.id;
+      },
+
+      // 2. The user approved in PayPal: our server authorizes (holds) the money
+      onApprove: async (data) => {
+        try {
+          const result = await postJson(`/api/payments/${paymentId}/authorize`, { orderID: data.orderID });
+          window.location.href = result.redirect;
+        } catch (error) {
+          errorBox.textContent = error.message;
+        }
+      },
+
+      onCancel: () => { errorBox.textContent = "You closed PayPal. Nothing was sent."; },
+      onError: (error) => {
+        console.error(error);
+        errorBox.textContent = "PayPal had a problem. Please try again.";
+      },
+    }).render("#paypal-buttons");
+  } else {
+    errorBox.textContent = "PayPal could not load. Check your internet connection or turn off ad-blockers for this page.";
+  }
+</script>
+{% endif %}
+{% endblock %}

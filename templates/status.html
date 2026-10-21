@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Payment status · SafeSend{% endblock %}
+{% block content %}
+{% set s = payment.status %}
+<div class="card status-hero status-{{ s }}">
+  <div class="status-icon" aria-hidden="true">
+    {% if s == "sent" %}✓{% elif s in ("held", "processing", "checked") %}⏸{% else %}✕{% endif %}
+  </div>
+
+  {% if s == "sent" %}
+    <h1>Money sent</h1>
+    <p>{{ payment.amount | money }} was sent to <strong>{{ payment.recipient }}</strong>.</p>
+    {% if payment.decided_by %}<p class="muted small">Approved by {{ payment.decided_by }}.</p>{% endif %}
+
+  {% elif s == "held" and wait_seconds == 0 %}
+    <h1>The waiting time is over</h1>
+    <p>Nobody has checked this yet. Do you <strong>still</strong> want to send
+       {{ payment.amount | money }} to {{ payment.recipient }}?</p>
+    <div class="btn-row">
+      <form method="post" action="{{ url_for('confirm_after_cooling_off', payment_id=payment.id) }}">
+        <button class="btn btn-ghost" type="submit">Yes, send it now</button>
+      </form>
+      <form method="post" action="{{ url_for('cancel', payment_id=payment.id) }}">
+        <button class="btn btn-safe" type="submit">No, cancel it</button>
+      </form>
+    </div>
+
+  {% elif s in ("held", "processing") %}
+    <h1>Your money is safe, on hold</h1>
+    <p>{{ payment.amount | money }} to {{ payment.recipient }} has <strong>not</strong> been sent.
+       We've asked <strong>{{ settings.contact_name }}</strong> to check it.</p>
+    {% if wait_seconds %}
+      <p class="muted">If nobody checks it, you can decide again in <span id="wait">{{ nice_wait(wait_seconds) }}</span>.</p>
+    {% endif %}
+    <div class="btn-row">
+      <form method="post" action="{{ url_for('cancel', payment_id=payment.id) }}">
+        <button class="btn btn-safe" type="submit">Cancel it, don't send</button>
+      </form>
+    </div>
+
+  {% elif s == "blocked" %}
+    <h1>Blocked. Your money is safe</h1>
+    <p><strong>{{ payment.decided_by }}</strong> stopped this payment. No money was sent to {{ payment.recipient }}.</p>
+    {% if payment.tip %}<p class="muted">{{ payment.tip }}</p>{% endif %}
+
+  {% elif s == "cancelled" %}
+    <h1>Cancelled. No money sent</h1>
+    <p>Good choice to check. Nothing was sent to {{ payment.recipient }}.</p>
+    {% if payment.tip %}<p class="muted">{{ payment.tip }}</p>{% endif %}
+
+  {% elif s == "checked" %}
+    <h1>Not sent yet</h1>
+    <p><a href="{{ url_for('pay', payment_id=payment.id) }}">Go back to finish or cancel this payment</a>.</p>
+
+  {% else %}
+    <h1>Something went wrong</h1>
+    <p>No money was sent. Please try again.</p>
+  {% endif %}
+
+  {% if payment.note %}<p class="error small">{{ payment.note }}</p>{% endif %}
+
+  <p style="margin-top: 26px"><a href="{{ url_for('home') }}">Make another payment</a></p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if payment.status in ("held", "processing") %}
+<script>
+  // Refresh by itself when the trusted contact decides, or the waiting time ends.
+  const startStatus = {{ payment.status | tojson }};
+  const startWait = {{ (wait_seconds or 0) | tojson }};
+  setInterval(async () => {
+    try {
+      const response = await fetch("/api/payments/{{ payment.id }}");
+      const data = await response.json();
+      if (data.status !== startStatus || (startWait > 0 && data.wait_seconds === 0)) {
+        window.location.reload();
+      }
+    } catch (error) { /* try again next time */ }
+  }, 4000);
+</script>
+{% endif %}
+{% endblock %}
